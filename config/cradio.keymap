@@ -16,7 +16,7 @@
 #define RIG 3
 #define RIG_ADJ 4
 #define TRI 5
-#define MOUSE 4
+#define MOUSE 6
 
 // Home row mods macro
 #define HRML(k1,k2,k3,k4) &hm LCTRL k1  &hm LALT k2  &hm LGUI k3  &hm LSHIFT k4
