@@ -11,27 +11,61 @@
 #include <dt-bindings/zmk/mouse.h>
 
 #define MAC 0
-#define WIN 1
-#define RIG 2
-#define LEF 3
-#define TRI 4
-#define MOUSE 5
+#define LEF 1
+#define LEF_ADJ 2
+#define RIG 3
+#define RIG_ADJ 4
+#define TRI 5
+#define MOUSE 4
+
+// Home row mods macro
+#define HRML(k1,k2,k3,k4) &hm LCTRL k1  &hm LALT k2  &hm LGUI k3  &hm LSHIFT k4
+#define HRMR(k1,k2,k3,k4) &hm RSHIFT k1  &hm RGUI k2  &hm RALT k3  &bhm RCTRL k4
 
 / {
     chosen {
         zmk,charmap = &charmap_us;
     };
+
+    combos {
+      compatible = "zmk,combos";
+
+      to_mouse_layer {
+        bindings = <&tog MOUSE>;
+        key-positions = <14 15>; // g + h
+      };
+    };
+
     behaviors {
-        ht: hold_tap {
-            label = "hold_tap";
-            compatible = "zmk,behavior-hold-tap";
-            #binding-cells = <2>;
-            flavor = "tap-preferred";
-            tapping-term-ms = <220>;
-            quick-tap-ms = <150>;
-            global-quick-tap;
-            bindings = <&kp>, <&kp>;
+        // ht: hold_tap {
+        //     label = "hold_tap";
+        //     compatible = "zmk,behavior-hold-tap";
+        //     #binding-cells = <2>;
+        //     flavor = "tap-preferred";
+        //     tapping-term-ms = <220>;
+        //     quick-tap-ms = <150>;
+        //     global-quick-tap;
+        //     bindings = <&kp>, <&kp>;
+        // };
+
+        bhm: balanced_homerow_mods { // suitable for fast shortcuts/navigating
+          compatible = "zmk,behavior-hold-tap";
+          #binding-cells = <2>;
+          tapping-term-ms = <200>;    // <---[[moderate duration]]
+          quick-tap-ms = <0>;
+          flavor = "balanced"; // The 'balanced' flavor will trigger the hold behavior when the tapping-term-ms has expired or another key is pressed and released.
+          bindings = <&kp>, <&kp>;
         };
+
+        hm: homerow_mods { // suitable for fast typing as this behavior prefers tap over than hold
+          compatible = "zmk,behavior-hold-tap";
+          #binding-cells = <2>;
+          tapping-term-ms = <200>;
+          quick-tap-ms = <0>;
+          flavor = "tap-preferred"; // The 'tap-preferred' flavor triggers the hold behavior when the tapping-term-ms has expired. Pressing another key within tapping-term-ms does not affect the decision.
+          bindings = <&kp>, <&kp>;
+        };
+
         mmv {
             acceleration-exponent = <1>;      // 1
             time-to-max-speed-ms = <300>;    // 40
@@ -41,6 +75,25 @@
             acceleration-exponent = <0>;      // 0
             time-to-max-speed-ms = <40>;      // 500
             delay-ms = <0>;                   // 10
+        };
+        td0: tap_dance_0 {
+          compatible = "zmk,behavior-tap-dance";
+          #binding-cells = <0>;
+          tapping-term-ms = <200>;
+          bindings = <&mo LEF>, <&mo LEF_ADJ>; // press once for "left_layer", and double for "left_adjust_layer"
+        };
+        td1: tap_dance_1 {
+          compatible = "zmk,behavior-tap-dance";
+          #binding-cells = <0>;
+          tapping-term-ms = <200>;
+          bindings = <&mo RIG>, <&mo RIG_ADJ>; // press once for "right_layer", and double for "right_adjust_layer"
+        };
+        bspc_del: backspace_delete {
+          compatible = "zmk,behavior-mod-morph";
+          #binding-cells = <0>;
+          bindings = <&kp BACKSPACE>, <&kp DELETE>;
+          mods = <(MOD_LSFT|MOD_RSFT)>;
+          keep-mods = <(MOD_RSFT)>;
         };
     };
 
@@ -58,54 +111,64 @@
 
         default_layer {
             bindings = <
-&kp Q  &kp W       &kp E        &kp R        &kp T         &kp Y      &kp U        &kp I        &kp O       &kp P
-&kp A  &ht LALT S  &ht LCTRL D  &ht LGUI F   &kp G         &kp H      &ht RGUI J   &ht RCTRL K  &ht RALT L  &kp BSPC
-&kp Z  &kp X       &kp C        &kp V        &kp B         &kp N      &kp M        &kp COMMA    &kp DOT     &kp ENTER
-                                &lt LEF TAB  &kp LSHIFT     &kp SPACE &lt RIG TAB
-            >;
-        };
-
-        windows_layer {
-            bindings = <
-&kp Q  &kp W       &kp E       &kp R        &kp T         &kp Y      &kp U        &kp I       &kp O       &kp P
-&kp A  &ht LALT S  &ht LGUI D  &ht LCTRL F  &kp G         &kp H      &ht RCTRL J  &ht RGUI K  &ht RALT L  &kp BSPC
-&kp Z  &kp X       &kp C       &kp V        &kp B         &kp N      &kp M        &kp COMMA   &kp DOT     &kp ENTER
-                               &lt LEF TAB  &kp LSHIFT     &kp SPACE &lt RIG TAB
-            >;
-        };
-
-        right_layer {
-            bindings = <
-&kp N1   &kp N2    &kp N3     &kp N4   &kp N5     &kp N6  &kp N7    &kp N8     &kp N9     &kp N0
-&kp DEL  &kp CAPS  &kp PSCRN  &kp INS  &trans     &kp LEFT  &kp DOWN   &kp UP  &kp RIGHT &trans
-&trans   &trans    &trans     &trans   &trans     &kp HOME  &kp PG_DN  &kp PG_UP  &kp END &bootloader 
-                              &trans   &kp ESC    &trans  &trans
+&kp Q  &kp W       &kp E        &kp R        &kp T              &kp Y      &kp U        &kp I        &kp O       &kp P
+HRML(A,    S,          D,           F)       &kp G              &kp H      HRMR(J,          K,           L,        SQT)
+&kp Z  &kp X       &kp C        &kp V        &kp B              &kp N      &kp M        &kp COMMA    &kp DOT     &hm CAPS FSLH
+                                &td0       &kp SPACE            &kp ENTER  &td1
             >;
         };
 
         left_layer {
             bindings = <
-&kp EXCL  &kp AT    &kp HASH  &kp DLLR  &kp PRCNT    &kp CARET  &kp AMPS   &kp ASTRK  &kp GRAVE  &kp TILDE
-&kp DQT   &kp LBKT  &kp LBRC  &kp LPAR  &default_report       &kp FSLH   &kp MINUS  &kp EQUAL  &kp COLON  &kp SEMI
-&kp SQT   &kp RBKT  &kp RBRC  &kp RPAR  &bootloader       &kp BSLH   &kp UNDER  &kp PLUS   &kp PIPE   &kp QMARK
-                              &trans    &trans       &tog MOUSE     &trans
+&kp N1    &kp N2    &kp N3       &kp N4   &kp N5           &kp N6    &kp N7     &kp N8     &kp N9     &kp N0
+&kp TAB   &trans    &trans       &trans   &kp SQT          &kp LEFT  &kp DOWN   &kp UP     &kp RIGHT  &bspc_del
+&kp GRAVE &trans    &trans       &trans   &caps_word       &kp HOME  &kp PG_DN  &kp PG_UP  &kp END    &kp ESC
+                                 &trans   &trans           &trans    &trans
+            >;
+        };
+
+        left_adjust_layer {
+            bindings = <
+&trans    &trans       &trans    &trans   &trans              &trans    &trans     &trans     &trans     &trans
+&trans    &trans       &trans    &trans   &default_report     &trans    &trans     &trans     &trans     &trans
+&trans    &bootloader  &trans    &trans   &trans              &trans    &trans     &trans     &trans     &trans
+                                 &trans   &trans              &trans    &trans
+            >;
+        };
+
+        right_layer {
+            bindings = <
+&kp EXCL &kp AT &kp HASH &kp DLLR &kp PRCNT                        &kp CARET &kp AMPS  &kp ASTRK &kp LPAR &kp RPAR
+&trans   &trans &trans   &trans   &trans                           &kp MINUS &kp EQUAL &kp LBKT  &kp RBKT &kp BSLH
+&trans   &trans &trans   &trans   &trans                           &kp UNDER &kp PLUS  &kp LBRC  &kp RBRC &kp PIPE
+                              &trans   &trans           &trans    &trans
+            >;
+        };
+
+        right_adjust_layer {
+            bindings = <
+&kp F1 &kp F2 &kp F3 &trans   &trans           &kp C_BRI_UP   &kp C_MUTE     &kp C_VOLUME_DOWN     &kp C_VOLUME_UP       &trans
+&kp F4 &kp F5 &kp F6 &kp F12  &trans           &kp C_BRI_DN   &kp C_PREV     &kp C_PP              &kp C_NEXT            &trans
+&kp F7 &kp F8 &kp F9 &kp F10  &kp F11          &trans         &trans         &trans                &bootloader           &trans
+                     &trans   &trans           &trans    &trans
             >;
         };
 
         tri_layer {
             bindings = <
-&kp F1  &kp F2   &kp F3   &kp F4   &bt BT_SEL 0    &bt BT_SEL 2  &out OUT_TOG   &tog WIN  &kp C_MUTE    &kp C_PREV
-&kp F5  &kp F6   &kp F7   &kp F8   &bt BT_SEL 1    &bt BT_SEL 3  &kp C_BRI_UP   &studio_unlock    &kp C_VOL_UP  &kp C_PP
-&kp F9  &kp F10  &kp F11  &kp F12  &bt BT_CLR      &bt BT_SEL 4  &kp C_BRI_DEC  &trans    &kp C_VOL_DN  &kp C_NEXT
-                          &trans   &trans          &trans        &trans
+&trans     &trans       &trans       &trans       &trans                &trans      &out OUT_TOG   &trans            &trans    &trans
+&trans     &trans       &trans       &trans       &trans                &trans      &trans         &studio_unlock    &trans    &kp C_PP
+&bt BT_CLR &bt BT_SEL 0 &bt BT_SEL 1 &bt BT_SEL 2 &bt BT_SEL 3          &trans      &trans         &trans            &trans    &trans
+                                     &trans       &trans                &trans      &trans
             >;
         };
+
         mouse {
             bindings = <
 &tog MOUSE  &mkp MB4  &mkp MCLK  &mkp MB5   &trans      &msc SCRL_LEFT     &msc SCRL_DOWN    &msc SCRL_UP     &msc SCRL_RIGHT    &tog MOUSE
 &trans      &trans    &trans     &trans     &trans      &mmv MOVE_LEFT     &mmv MOVE_DOWN    &mmv MOVE_UP     &mmv MOVE_RIGHT    &trans
-&trans      &trans    &trans     &trans     &trans      &trans     &mkp MB4  &mkp MCLK  &mkp MB5  &trans
-                                 &kp SPACE  &kp LSHIFT  &mkp LCLK  &mkp RCLK
+&trans      &trans    &trans     &trans     &trans      &trans             &mkp MB4          &mkp MCLK        &mkp MB5           &trans
+                                 &trans     &trans      &mkp LCLK          &mkp RCLK
             >;
         };
     };
